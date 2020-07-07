@@ -1,0 +1,4 @@
+bin
+obj
+.vs
+/FakeAPI.csproj.user
