@@ -99,48 +99,9 @@ namespace FakeAPI.Helpers
             return ExecuteNonQuery(type, command, null);
         }
 
-        public object ExecuteScalar(CommandType type, string command, SqlParameter[] param)
+        public int ExecuteNonQuery(string command, SqlParameter[] param=null)
         {
-            using (SqlConnection conn = new SqlConnection(connection))
-            {
-                using (SqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.Connection = conn;
-                    cmd.CommandText = command;
-                    cmd.CommandType = type;
-                    if (param != null)
-                    {
-                        foreach (SqlParameter p in param)
-                        {
-                            if (p.Value == null)
-                            {
-                                p.Value = DBNull.Value;
-                            }
-                            cmd.Parameters.Add(p);
-                        }
-                    }
-                    conn.Open();
-                    try
-                    {
-                        object result = cmd.ExecuteScalar();
-                        return (DBNull.Value == result) ? null : result;
-                    }
-                    catch (Exception ex)
-                    {
-                        LogException(ex, command, param);
-                        throw;
-                    }
-                    finally
-                    {
-                        cmd.Parameters.Clear();
-                    }
-                }
-            }
-        }
-
-        public object ExecuteScalar(CommandType type, string command)
-        {
-            return ExecuteScalar(type, command, null);
+            return ExecuteNonQuery(CommandType.Text, command, param);
         }
 
         public DataTable ExecuteDataTable(CommandType type, string query, SqlParameter[] param)
@@ -189,56 +150,6 @@ namespace FakeAPI.Helpers
         public DataTable ExecuteDataTable(string query, SqlParameter[] param = null)
         {
             return ExecuteDataTable(CommandType.Text, query, param);
-        }
-
-        public DataSet ExecuteDataset(CommandType type, string command, SqlParameter[] param)
-        {
-            using (SqlConnection conn = new SqlConnection(connection))
-            {
-                using (SqlCommand cmd = new SqlCommand())
-                {
-                    cmd.Connection = conn;
-                    cmd.CommandText = command;
-                    cmd.CommandType = type;
-                    cmd.CommandTimeout = 600;
-                    if (param != null)
-                    {
-                        foreach (SqlParameter p in param)
-                        {
-                            if (p.Value == null)
-                            {
-                                p.Value = DBNull.Value;
-                            }
-                            cmd.Parameters.Add(p);
-                        }
-                    }
-                    try
-                    {
-                        conn.Open();
-                        using (SqlDataAdapter adp = new SqlDataAdapter(cmd))
-                        {
-                            DataSet ds = new DataSet();
-                            adp.Fill(ds);
-                            cmd.Parameters.Clear();
-                            return ds;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        LogException(ex, command, param);
-                        throw;
-                    }
-                    finally
-                    {
-                        cmd.Parameters.Clear();
-                    }
-                }
-            }
-        }
-
-        public DataSet ExecuteDataset(CommandType type, string command)
-        {
-            return ExecuteDataset(type, command, null);
         }
     }
 }
