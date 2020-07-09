@@ -16,23 +16,10 @@ namespace FakeAPI.Controllers
     {
         private static LogHelper _loggerAPI = new LogHelper(LogHelper.LogName.APILogger);
 
-        public class UserInfo
-        {
-            public string Name { get; set; }
-            public string LoginTime { get; set; }
-        }
-
-        [ApiVersion("1.0")]
-        [HttpGet, Route("v{Version:apiVersion}/get")]
-        public ActionResult<UserInfo> Get()
-        {
-            return new UserInfo()
-            {
-                Name = "Marcus",
-                LoginTime = DateTime.Now.ToString()
-            };
-        }
-
+        /// <summary>
+        /// 取得所有Post
+        /// </summary>
+        /// <returns>回傳所有Post</returns>
         [ApiVersion("1.0")]
         [HttpGet, Route("v{Version:apiVersion}/posts")]
         public APIResult GetAllPosts()
@@ -50,6 +37,11 @@ namespace FakeAPI.Controllers
             return result;
         }
 
+        /// <summary>
+        /// 取得特定Post
+        /// </summary>
+        /// <param name="id">Post Id</param>
+        /// <returns>回傳特定Post</returns>
         [ApiVersion("1.0")]
         [HttpGet, Route("v{Version:apiVersion}/posts/{id}")]
         public APIResult GetPost(int id)

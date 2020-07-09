@@ -62,6 +62,11 @@ namespace FakeAPI.Models
             }
         }
 
+        /// <summary>
+        /// 取得特定Post
+        /// </summary>
+        /// <param name="Id">Post Id</param>
+        /// <returns>回傳該筆Post，若無相關Post則傳回null</returns>
         public static Dictionary<string, object> GetPostById(int Id)
         {
             try
