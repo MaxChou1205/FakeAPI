@@ -78,26 +78,72 @@ namespace FakeAPI.Models
             }
         }
 
-        public static int CreatePost(Post post)
+        public static void CreatePost(Post post)
         {
             try
             {
-                if (post.CreatedOn == null)
-                    post.CreatedOn = DateTime.Now;
-                if (post.ModifiedOn == null)
-                    post.ModifiedOn = DateTime.Now;
+                post.CreatedOn = DateTime.Now;
+                post.ModifiedOn = DateTime.Now;
 
                 var parameters = new List<SqlParameter>();
                 var columns = new List<string>();
                 Type t = post.GetType();
+
                 foreach (var p in t.GetProperties())
                 {
-                    string columnName = p.Name;
+                    string columnName = p.Name; ;
                     columns.Add(columnName);
                     parameters.Add(new SqlParameter(columnName, p.GetValue(post)));
                 }
 
-                return _sqlAdapter.ExecuteNonQuery($"INSERT INTO Post ({string.Join(",", columns)}) VALUES (@{string.Join(",@", columns)})", parameters.ToArray());
+                _sqlAdapter.ExecuteNonQuery($"INSERT INTO Post ({string.Join(",", columns)}) VALUES (@{string.Join(",@", columns)})", parameters.ToArray());
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e.Message);
+                throw e;
+            }
+        }
+
+        public static void UpdatePost(int id, Post post)
+        {
+            try
+            {
+                post.ModifiedOn = DateTime.Now;
+
+                var parameters = new List<SqlParameter>();
+                var columns = new List<string>();
+                Type t = post.GetType();
+
+                parameters.Add(new SqlParameter("Id", id));
+                foreach (var p in t.GetProperties())
+                {
+                    string columnName = p.Name;
+                    if (columnName == "Id" || columnName == "CreatedOn")
+                        continue;
+                    columns.Add($"{columnName} = @{columnName}");
+                    parameters.Add(new SqlParameter(columnName, p.GetValue(post)));
+                }
+
+                _sqlAdapter.ExecuteNonQuery($"UPDATE Post SET {string.Join(",", columns)} WHERE Id=@Id", parameters.ToArray());
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e.Message);
+                throw e;
+            }
+        }
+
+        public static void DeletePost(int id)
+        {
+            try
+            {
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("Id",id)
+                };
+
+                _sqlAdapter.ExecuteNonQuery($"DELETE FROM Post WHERE Id=@Id", parameters.ToArray());
             }
             catch (Exception e)
             {

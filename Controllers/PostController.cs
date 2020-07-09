@@ -74,7 +74,8 @@ namespace FakeAPI.Controllers
             var result = new APIResult();
             try
             {
-                result.Data = PostModel.CreatePost(reqBody);
+                PostModel.CreatePost(reqBody);
+                result.Data = PostModel.GetPostById(reqBody.Id);
                 result.IsSucceed = true;
             }
             catch (Exception e)
@@ -86,17 +87,36 @@ namespace FakeAPI.Controllers
 
         [ApiVersion("1.0")]
         [HttpPut, Route("v{Version:apiVersion}/posts/{id}")]
-        public APIResult UpdatePost([FromBody] object body)
+        public APIResult UpdatePost([FromBody] Post reqBody, int id)
         {
             var result = new APIResult();
+            try
+            {
+                PostModel.UpdatePost(id, reqBody);
+                result.Data = PostModel.GetPostById(id);
+                result.IsSucceed = true;
+            }
+            catch (Exception e)
+            {
+                PostModel.ExceptionHandler(_loggerAPI, result, e.Message);
+            }
             return result;
         }
 
         [ApiVersion("1.0")]
         [HttpDelete, Route("v{Version:apiVersion}/posts/{id}")]
-        public APIResult DeletePost([FromBody] object body)
+        public APIResult DeletePost(int id)
         {
             var result = new APIResult();
+            try
+            {
+                PostModel.DeletePost(id);
+                result.IsSucceed = true;
+            }
+            catch (Exception e)
+            {
+                PostModel.ExceptionHandler(_loggerAPI, result, e.Message);
+            }
             return result;
         }
     }
