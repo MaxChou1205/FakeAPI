@@ -1,4 +1,6 @@
-﻿using FakeAPI.Helpers;
+﻿using Dapper;
+using FakeAPI.Helpers;
+using Microsoft.Extensions.Configuration;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -48,12 +50,19 @@ namespace FakeAPI.Models
     {
         private static LogHelper _logger = new LogHelper(LogHelper.LogName.ModelLogger);
         private static SqlHelper _sqlAdapter = new SqlHelper();
+        private static IConfiguration _manager = Startup.Configuration;
 
-        public static List<Dictionary<string, object>> GetPosts()
+        public static List<Post> GetPosts()
         {
             try
             {
-                return _sqlAdapter.ExecuteDataTable("SELECT * FROM Post").ToList();
+                // return _sqlAdapter.ExecuteDataTable("SELECT * FROM Post").ToList();
+
+                using (SqlConnection conn = new SqlConnection(_manager.GetValue<string>("ConnectionStrings")))
+                {
+                    string strSql = "Select * from Post";
+                    return conn.Query<Post>(strSql).ToList();
+                }
             }
             catch (Exception e)
             {
@@ -67,14 +76,20 @@ namespace FakeAPI.Models
         /// </summary>
         /// <param name="Id">Post Id</param>
         /// <returns>回傳該筆Post，若無相關Post則傳回null</returns>
-        public static Dictionary<string, object> GetPostById(int Id)
+        public static Post GetPostById(int Id)
         {
             try
             {
-                List<SqlParameter> parameters = new List<SqlParameter>() {
-                                     new SqlParameter("Id", Id)
-                                };
-                return _sqlAdapter.ExecuteDataTable("SELECT * FROM Post WHERE Id=@Id", parameters.ToArray()).ToList().FirstOrDefault();
+                //List<SqlParameter> parameters = new List<SqlParameter>() {
+                //                     new SqlParameter("Id", Id)
+                //                };
+                //return _sqlAdapter.ExecuteDataTable("SELECT * FROM Post WHERE Id=@Id", parameters.ToArray()).ToList().FirstOrDefault();
+
+                using (SqlConnection conn = new SqlConnection(_manager.GetValue<string>("ConnectionStrings")))
+                {
+                    string strSql = "SELECT * FROM Post WHERE Id=@Id";
+                    return conn.Query<Post>(strSql, new { Id = Id }).FirstOrDefault();
+                }
             }
             catch (Exception e)
             {
@@ -90,18 +105,25 @@ namespace FakeAPI.Models
                 post.CreatedOn = DateTime.Now;
                 post.ModifiedOn = DateTime.Now;
 
-                var parameters = new List<SqlParameter>();
-                var columns = new List<string>();
-                Type t = post.GetType();
+                //var parameters = new List<SqlParameter>();
+                //var columns = new List<string>();
+                //Type t = post.GetType();
 
-                foreach (var p in t.GetProperties())
+                //foreach (var p in t.GetProperties())
+                //{
+                //    string columnName = p.Name; ;
+                //    columns.Add(columnName);
+                //    parameters.Add(new SqlParameter(columnName, p.GetValue(post)));
+                //}
+
+                // _sqlAdapter.ExecuteNonQuery($"INSERT INTO Post ({string.Join(",", columns)}) VALUES (@{string.Join(",@", columns)})", parameters.ToArray());
+
+                string insertStr = @"INSERT INTO Post (Id,Title,Body,CreatedOn,ModifiedOn) VALUES (@Id,@Title,@Body,@CreatedOn,@ModifiedOn)";
+
+                using (SqlConnection conn = new SqlConnection(_manager.GetValue<string>("ConnectionStrings")))
                 {
-                    string columnName = p.Name; ;
-                    columns.Add(columnName);
-                    parameters.Add(new SqlParameter(columnName, p.GetValue(post)));
+                    conn.Execute(insertStr, post);
                 }
-
-                _sqlAdapter.ExecuteNonQuery($"INSERT INTO Post ({string.Join(",", columns)}) VALUES (@{string.Join(",@", columns)})", parameters.ToArray());
             }
             catch (Exception e)
             {
@@ -116,21 +138,26 @@ namespace FakeAPI.Models
             {
                 post.ModifiedOn = DateTime.Now;
 
-                var parameters = new List<SqlParameter>();
-                var columns = new List<string>();
-                Type t = post.GetType();
+                //var parameters = new List<SqlParameter>();
+                //var columns = new List<string>();
+                //Type t = post.GetType();
 
-                parameters.Add(new SqlParameter("Id", id));
-                foreach (var p in t.GetProperties())
+                //parameters.Add(new SqlParameter("Id", id));
+                //foreach (var p in t.GetProperties())
+                //{
+                //    string columnName = p.Name;
+                //    if (columnName == "Id" || columnName == "CreatedOn")
+                //        continue;
+                //    columns.Add($"{columnName} = @{columnName}");
+                //    parameters.Add(new SqlParameter(columnName, p.GetValue(post)));
+                //}
+                //_sqlAdapter.ExecuteNonQuery($"UPDATE Post SET {string.Join(",", columns)} WHERE Id=@Id", parameters.ToArray());
+
+                string updateStr = @"UPDATE Post SET Title=@Title,Body=@Body,ModifiedOn=@ModifiedOn WHERE Id=@Id";
+                using (SqlConnection conn = new SqlConnection(_manager.GetValue<string>("ConnectionStrings")))
                 {
-                    string columnName = p.Name;
-                    if (columnName == "Id" || columnName == "CreatedOn")
-                        continue;
-                    columns.Add($"{columnName} = @{columnName}");
-                    parameters.Add(new SqlParameter(columnName, p.GetValue(post)));
+                    conn.Execute(updateStr, post);
                 }
-
-                _sqlAdapter.ExecuteNonQuery($"UPDATE Post SET {string.Join(",", columns)} WHERE Id=@Id", parameters.ToArray());
             }
             catch (Exception e)
             {
@@ -143,12 +170,18 @@ namespace FakeAPI.Models
         {
             try
             {
-                var parameters = new List<SqlParameter>
-                {
-                    new SqlParameter("Id",id)
-                };
+                //var parameters = new List<SqlParameter>
+                //{
+                //    new SqlParameter("Id",id)
+                //};
 
-                _sqlAdapter.ExecuteNonQuery($"DELETE FROM Post WHERE Id=@Id", parameters.ToArray());
+                //_sqlAdapter.ExecuteNonQuery($"DELETE FROM Post WHERE Id=@Id", parameters.ToArray());
+
+                string deleteStr = "DELETE Post WHERE Id=@Id";
+                using (SqlConnection conn = new SqlConnection(_manager.GetValue<string>("ConnectionStrings")))
+                {
+                    conn.Execute(deleteStr, new[] { new { Id = id } });
+                }
             }
             catch (Exception e)
             {
