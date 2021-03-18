@@ -17,7 +17,7 @@ namespace FakeAPI.Helpers
     public class SqlHelper
     {
         private static IConfiguration _manager = Startup.Configuration;
-        private static LogHelper _logger = new LogHelper(LogHelper.LogName.DBLogger);
+        private static LogHelper _logger = new LogHelper();
         protected string connection;
 
         public SqlHelper()

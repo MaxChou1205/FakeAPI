@@ -11,10 +11,9 @@ namespace FakeAPI.Helpers
     public class LogHelper
     {
         private ILogger _logger;
-        public enum LogName { APILogger, DBLogger, ModelLogger }
-        public LogHelper(LogName name)
+        public LogHelper()
         {
-            _logger = LogManager.GetLogger(name.ToString());
+            _logger = LogManager.GetLogger("Information");
         }
 
         public void Debug(string message)

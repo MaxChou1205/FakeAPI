@@ -48,7 +48,7 @@ namespace FakeAPI.Models
 
     public class PostModel
     {
-        private static LogHelper _logger = new LogHelper(LogHelper.LogName.ModelLogger);
+        private static LogHelper _logger = new LogHelper();
         private static SqlHelper _sqlAdapter = new SqlHelper();
         private static IConfiguration _manager = Startup.Configuration;
 
